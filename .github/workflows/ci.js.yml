@@ -8,7 +8,7 @@ jobs:
   build-and-push:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4  # Checkout code from the repository
+      - uses: actions/checkout@v3  # Checkout code from the repository
 
       - name: Set up Docker cache  # (Optional) Cache Docker layers for efficiency
         uses: actions/cache@v3
