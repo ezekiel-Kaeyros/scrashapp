@@ -5,21 +5,30 @@ on:
     branches: [ "main" ]
 
 jobs:
-  build:
+  build-and-push:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - name: Login Dockerhub
+      - uses: actions/checkout@v4  # Checkout code from the repository
+
+      - name: Set up Docker cache  # (Optional) Cache Docker layers for efficiency
+        uses: actions/cache@v3
+        with:
+          path: ~/.docker/dangler  # Cache Docker metadata for faster builds
+          key: ${{ runner.os }}-build-${{ hashFiles('**/Dockerfile') }}  # Unique cache key based on Dockerfile changes
+          restore-keys: |
+            ${{ runner.os }}-build-
+
+      - name: Login to Docker Hub
         env:
-          DOCKER_USERNAME: ${{secrets.DOCKER_USERNAME}}
-          DOCKER_PASSWORD: ${{secrets.DOCKER_PASSWORD}}
-        run: docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
-      - name: Build frontend sema
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+        run: docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD"  # Secure Docker login using secrets
 
-        run: 
-           docker build -t ezekielkaeyros/scratchapp .
+      - name: Build Docker image (backend)
+        working-directory: backend  # Specify working directory for build
+        run: docker build -t ezekielkaeyros/scratchapp:latest .
 
-      - name: Push to Dockerhub 
+      - name: Push Docker image to Docker Hub
         run: docker push ezekielkaeyros/scratchapp:latest
+
       
-    

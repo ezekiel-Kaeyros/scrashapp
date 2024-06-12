@@ -1,0 +1,5 @@
+{
+    "watch": ["server"],
+    "ext": ".ts",
+    "exec": "ts-node ./server/index.ts --max_old_space_size=2096"
+}

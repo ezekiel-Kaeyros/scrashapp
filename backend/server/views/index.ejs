@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/img/scratch.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Lexend+Exa:wght@100..900&display=swap"
+      rel="stylesheet"
+    />
+    <title>Scratching game</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-background">
+    <div class="h-screen w-full">
+      <div
+        class="flex lg:px-20 md:px-10 px-3 py-3 justify-between place-items-center shadow-md"
+      >
+        <div class="flex justify-start gap-2">
+          <img src="/img/scratch.png" alt="logo" class="h-12 w-12" />
+          <h1 class="font-lexend font-bold text-sm self-end">Scratcher</h1>
+        </div>
+        <div></div>
+        <div></div>
+      </div>
+      <div class="w-full flex justify-center pt-10 px-3">
+        <div
+          class="text-center font-lexend font-light mx-auto text-xs lg:w-1/3 md:w-1/2 w-full"
+        >
+          H2 tags come right after the H1 tag. Usually, there's one H1 tag per
+          document, which is the title. The H2 tags are the main headings of the
+          article, and they are engines understand the topic of that document.
+        </div>
+      </div>
+      <div class="flex flex-col flex-1 justify-center place-items-center pt-10">
+        <div class="grid grid-cols-2 gap-2 lg:gap-5 px-3 md:px-10 lg:px-20">
+          <div
+            class="md:h-48 md:w-48 h-40 w-40 lg:h-60 lg:w-60 rounded-lg text-center place-content-center relative scratch-ticket"
+          >
+            <canvas
+              id="scratch-1"
+              class="absolute md:h-48 md:w-48 h-40 w-40 lg:h-60 lg:w-60 top-0 left-0 cursor-grabbing rounded-lg scratch-canvas"
+            >
+            </canvas>
+          </div>
+          <div
+            class="md:h-48 md:w-48 h-40 w-40 lg:h-60 lg:w-60 rounded-lg text-center place-content-center relative scratch-ticket"
+          >
+            <canvas
+              id="scratch-2"
+              class="absolute md:h-48 md:w-48 h-40 w-40 lg:h-60 lg:w-60 top-0 left-0 cursor-grabbing rounded-lg scratch-canvas"
+            >
+            </canvas>
+          </div>
+          <div
+            class="md:h-48 md:w-48 h-40 w-40 lg:h-60 lg:w-60 rounded-lg text-center place-content-center relative scratch-ticket"
+          >
+            <canvas
+              id="scratch-3"
+              class="absolute md:h-48 md:w-48 h-40 w-40 lg:h-60 lg:w-60 top-0 left-0 cursor-grabbing rounded-lg scratch-canvas"
+            >
+            </canvas>
+          </div>
+          <div
+            class="md:h-48 md:w-48 h-40 w-40 lg:h-60 lg:w-60 rounded-lg text-center place-content-center relative scratch-ticket"
+          >
+            <canvas
+              id="scratch-4"
+              class="absolute md:h-48 md:w-48 h-40 w-40 lg:h-60 lg:w-60 top-0 left-0 cursor-grabbing rounded-lg scratch-canvas"
+            >
+            </canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script>
+        const scratchCards = () => {
+  const canvases = document.querySelectorAll(".scratch-canvas");
+  const tickets = document.querySelectorAll(".scratch-ticket");
+  const ticketGagnant = Math.floor(Math.random() * 4);
+  let isAnyCardScratched = -1;
+
+  const loadImage = (src) => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = reject;
+      img.src = src;
+    });
+  };
+
+  const getScratchCoordinates = (event, canvas) => {
+    const rect = canvas.getBoundingClientRect();
+    if (event.touches) {
+      return {
+        x: event.touches[0].clientX - rect.left,
+        y: event.touches[0].clientY - rect.top,
+      };
+    } else {
+      return {
+        x: event.offsetX,
+        y: event.offsetY,
+      };
+    }
+  };
+  const initCanvasTicket = async (ticket, index) => {
+    try {
+      if (index === ticketGagnant) {
+        const backgroundImageUrl = `./img/scratch_win.png`;
+        ticket.style.backgroundImage = `url(${backgroundImageUrl})`;
+        ticket.style.backgroundSize = "cover";
+        ticket.style.backgroundPosition = "center";
+      } else {
+        const backgroundImageUrl = `./img/you_lose.png`;
+        ticket.style.backgroundImage = `url(${backgroundImageUrl})`;
+        ticket.style.backgroundSize = "cover";
+        ticket.style.backgroundPosition = "center";
+      }
+    } catch (error) {
+      console.error("Error loading image:", error);
+    }
+  };
+  const initCanvas = async (canvas, index) => {
+    let id = index;
+    const context = canvas.getContext("2d");
+    try {
+      const img = await loadImage("./img/scratch_to_win.jpg");
+      context.drawImage(img, 0, 0, canvas.width, canvas.height);
+    } catch (error) {
+      console.error("Error loading image:", error);
+    }
+
+    let isDragging = false;
+
+    const scratch = (x, y) => {
+      context.globalCompositeOperation = "destination-out";
+      context.beginPath();
+      context.arc(x, y, 20, 0, 2 * Math.PI);
+      context.fill();
+    };
+
+    const startScratch = (event) => {
+      event.preventDefault();
+      if (isAnyCardScratched !== -1 && isAnyCardScratched !== id) {
+        return;
+      }
+      isAnyCardScratched = id;
+      isDragging = true;
+      const { x, y } = getScratchCoordinates(event, canvas);
+      scratch(x, y);
+    };
+
+    const continueScratch = (event) => {
+      event.preventDefault();
+      if (isDragging) {
+        const { x, y } = getScratchCoordinates(event, canvas);
+        scratch(x, y);
+      }
+    };
+
+    const stopScratch = (event) => {
+      event.preventDefault();
+      isDragging = false;
+    };
+
+    canvas.addEventListener("mousedown", startScratch);
+    canvas.addEventListener("mousemove", continueScratch);
+    canvas.addEventListener("mouseup", stopScratch);
+    canvas.addEventListener("mouseleave", stopScratch);
+
+    canvas.addEventListener("touchstart", startScratch);
+    canvas.addEventListener("touchmove", continueScratch);
+    canvas.addEventListener("touchend", stopScratch);
+    canvas.addEventListener("touchcancel", stopScratch);
+  };
+
+  canvases.forEach((canvas, index) => initCanvas(canvas, index));
+
+  tickets.forEach((canvas, index) => initCanvasTicket(canvas, index));
+};
+
+document.addEventListener("DOMContentLoaded", scratchCards);
+    </script>
+  </body>
+</html>
